@@ -2572,3 +2572,39 @@ asyncTest( "Sanitized HTML doesn't get unsanitized by buildFragment-based method
 		start();
 	}, 1000 );
 });
+
+test( "<option> and <optgroup> are not parsed inside a <select> wrapper where not needed", function() {
+
+	expect( 6 );
+
+	var parsed, div;
+
+	if ( !jQuery.support.option ) {
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		ok( true, "Support: IE<=9 still needs the <select> wrapper" );
+		return;
+	}
+
+	// Inside a <select> wrapper the parser drops the <b> start tag,
+	// so seeing it proves the markup was parsed in a normal context
+	parsed = jQuery("<option>a</option><b>b</b>");
+	equal( parsed.length, 2, "jQuery(): both top-level elements kept" );
+	equal( parsed.eq( 1 ).prop("nodeName").toLowerCase(), "b", "jQuery(): element after <option> kept" );
+
+	div = jQuery("<div></div>").append("<option>a</option><b>b</b>");
+	equal( div.children("b").length, 1, "append(): element after <option> kept" );
+
+	div = jQuery("<div></div>").html("<optgroup label='g'></optgroup><b>b</b>");
+	equal( div.children("b").length, 1, "html(): element after <optgroup> kept" );
+
+	parsed = jQuery.parseHTML("<option>a</option><b>b</b>");
+	equal( parsed[ parsed.length - 1 ].nodeName.toLowerCase(), "b",
+		"jQuery.parseHTML(): element after <option> kept" );
+
+	equal( jQuery("<select></select>").append("<option value='x'>x</option>").find("option").val(), "x",
+		"append(): options still insert into a <select>" );
+});
